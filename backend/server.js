@@ -14,6 +14,10 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const operatorRoutes = require("./routes/operatorRoutes"); // Import
+// ...
+app.use("/api/operators", operatorRoutes); // Use
+
 
 // Middleware
 app.use(express.json());
