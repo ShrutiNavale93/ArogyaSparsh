@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api';
 import { 
   Activity, Users, Package, Navigation, LogOut, 
   MapPin, CheckCircle2, Clock, AlertOctagon, 
@@ -18,7 +17,7 @@ import RealisticFlightTracker from '../components/RealisticFlightTracker';
 // Register ChartJS
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
-// IMAGES (Using your specific imports)
+// IMAGES
 import imgAtropine from '../assets/medicines/Atropine.jpg';
 import imgActrapid from '../assets/medicines/Actrapid_Plain.webp';
 import imgDopamine from '../assets/medicines/Dopamine.jpg'; 
@@ -52,7 +51,7 @@ const PHC_COORDINATES = {
 };
 const HOSPITAL_LOC = { lat: 19.9260, lng: 79.9033 }; 
 
-// LOCAL REFERENCE DB
+// LOCAL REFERENCE DB (For Images)
 const LOCAL_MEDICINE_DB = [
   { id: 6, name: 'Inj. Atropine', img: imgAtropine },
   { id: 7, name: 'Inj. Adrenaline', img: imgAdrenaline },
@@ -77,7 +76,8 @@ const LOCAL_MEDICINE_DB = [
 
 const HospitalDashboard = () => {
   const navigate = useNavigate();
-  // ✅ GET USER INFO
+  
+  // ✅ GET USER INFO (Ensures name is displayed)
   const user = JSON.parse(localStorage.getItem('userInfo')) || { name: 'District Hospital' };
   
   const [activeTab, setActiveTab] = useState('alerts');
@@ -375,12 +375,14 @@ const HospitalDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
              <button onClick={handleClearAll} className="bg-red-50 text-red-600 px-3 py-1 rounded-lg text-xs font-bold border border-red-200 hover:bg-red-100 transition-colors flex items-center gap-1"><Trash2 size={14}/> Reset System</button>
+             
              {/* ✅ UPDATED: Shows Logged-In User Name */}
              <div className="bg-blue-50 px-3 py-1 rounded-full text-xs font-semibold text-blue-700 flex items-center gap-2">
                 <MapPin size={14} /> {user.name}
              </div>
           </div>
         </header>
+        {/* ... Rest of the component ... */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 relative">
             {activeTab === 'alerts' && (
                 <div className="max-w-6xl mx-auto">
@@ -412,7 +414,8 @@ const HospitalDashboard = () => {
                     )})}
                 </div>
             )}
-            {activeTab === 'analytics' && (
+            {/* ... analytics, reports, map, inventory tabs ... */}
+             {activeTab === 'analytics' && (
                 <div className="max-w-6xl mx-auto">
                     {predictions.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
