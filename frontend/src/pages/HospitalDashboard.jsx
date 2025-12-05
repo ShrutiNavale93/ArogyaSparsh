@@ -1,25 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { 
-  Activity, Users, Package, Navigation, LogOut, 
+  Activity, Users, Package, LogOut, 
   MapPin, CheckCircle2, Clock, AlertOctagon, 
-  Battery, Signal, Plane, Plus, Minus, Search, 
-  Map as MapIcon, VolumeX, Siren, X, Check, Menu,
-  Pill, QrCode, Layers, Save, Trash2, FileText, Eye, Building2, Globe, Timer, Zap, Brain, Cpu, Terminal, 
-  TrendingUp, ClipboardList, Filter, MessageCircle, Send, AlertTriangle, ShieldAlert, BarChart3, Calendar, LayoutDashboard, 
-  UserPlus, Briefcase, Phone, Mail 
+  Plane, Plus, Minus, Map as MapIcon, X, Menu,
+  ClipboardList, Filter, MessageCircle, Send, AlertTriangle, 
+  TrendingUp, Terminal, UserPlus, Briefcase, Phone, Mail, 
+  Trash2, Globe, FileText
 } from 'lucide-react';
-import { Bar, Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 
-// --- INLINED COMPONENT: AiCopilot ---
+// --- ERROR BOUNDARY (Prevents White Screen) ---
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong.</h1>
+          <p className="bg-red-50 p-4 rounded border border-red-200 text-red-800 font-mono text-sm inline-block">
+            {this.state.error && this.state.error.toString()}
+          </p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="block mx-auto mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Reload Application
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// --- SUB-COMPONENTS ---
+
 const AiCopilot = ({ contextData, isOpen, onClose }) => {
   const [messages, setMessages] = useState([
-    { role: 'system', text: 'Hello, Hospital Admin. I am your AeroMed Copilot. How can I assist with the transport logistics today?' }
+    { role: 'system', text: 'Hello. I am your AeroMed Copilot. I can assist with inventory forecasting and flight status.' }
   ]);
   const [input, setInput] = useState('');
   const chatEndRef = useRef(null);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,28 +66,27 @@ const AiCopilot = ({ contextData, isOpen, onClose }) => {
     setTimeout(() => {
       setMessages(prev => [...prev, { 
         role: 'system', 
-        text: `I've processed your request regarding "${newMsg.text}". Data from ${contextData?.inventory?.length || 0} inventory items has been analyzed.` 
+        text: `Analysis complete for "${newMsg.text}". Flight parameters for active drones are within safety limits.` 
       }]);
     }, 1000);
   };
 
-  // Toggle visibility (simulating the prop usage if passed, or internal state)
-  if (isOpen === false) return null; 
+  if (!isOpen) return null; 
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden">
-      <div className="bg-blue-600 p-3 text-white flex justify-between items-center">
+    <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden animate-in slide-in-from-bottom-5">
+      <div className="bg-slate-900 p-3 text-white flex justify-between items-center">
         <div className="flex items-center gap-2">
           <MessageCircle size={18} />
-          <span className="font-semibold">AiCopilot</span>
+          <span className="font-semibold">AeroCopilot</span>
         </div>
-        <button onClick={onClose || (() => setVisible(false))} className="hover:bg-blue-700 p-1 rounded">
+        <button onClick={onClose} className="hover:bg-slate-700 p-1 rounded">
           <X size={16} />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-3">
         {messages.map((msg, idx) => (
-          <div key={idx} className={`p-2 rounded-lg max-w-[85%] text-sm ${msg.role === 'user' ? 'bg-blue-100 self-end text-blue-900' : 'bg-white border border-gray-200 self-start text-gray-800'}`}>
+          <div key={idx} className={`p-2 rounded-lg max-w-[85%] text-xs ${msg.role === 'user' ? 'bg-blue-100 self-end text-blue-900' : 'bg-white border border-gray-200 self-start text-gray-800 shadow-sm'}`}>
             {msg.text}
           </div>
         ))}
@@ -67,19 +98,17 @@ const AiCopilot = ({ contextData, isOpen, onClose }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask copilot..."
-          className="flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="Type query..."
+          className="flex-1 border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-        <button onClick={handleSend} className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">Send</button>
+        <button onClick={handleSend} className="bg-slate-900 text-white px-3 py-1 rounded text-xs hover:bg-slate-800">Send</button>
       </div>
     </div>
   );
 };
 
-// --- INLINED COMPONENT: RealisticFlightTracker ---
 const RealisticFlightTracker = ({ origin, destination, onDeliveryComplete }) => {
   useEffect(() => {
-    // Simulate delivery completion after 10 seconds for demo purposes
     const timer = setTimeout(() => {
       if (onDeliveryComplete) onDeliveryComplete();
     }, 10000);
@@ -87,596 +116,553 @@ const RealisticFlightTracker = ({ origin, destination, onDeliveryComplete }) => 
   }, [onDeliveryComplete]);
 
   return (
-    <div className="w-full h-96 bg-slate-900 rounded-xl overflow-hidden relative shadow-inner border border-slate-700">
-      <div className="absolute inset-0 opacity-30">
-        <div className="grid grid-cols-6 grid-rows-4 h-full w-full">
-           {[...Array(24)].map((_, i) => (
-             <div key={i} className="border border-slate-800/50" />
+    <div className="w-full h-80 bg-slate-900 rounded-xl overflow-hidden relative shadow-inner border border-slate-700">
+      <div className="absolute inset-0 opacity-20">
+        <div className="grid grid-cols-8 grid-rows-6 h-full w-full">
+           {[...Array(48)].map((_, i) => (
+             <div key={i} className="border border-slate-700/50" />
            ))}
         </div>
       </div>
-      <div className="absolute top-4 left-4 text-xs font-mono text-blue-200 bg-slate-900/80 p-2 rounded border border-blue-500/30">
-        <div>ORIGIN: {origin.lat?.toFixed(4) || 'N/A'}, {origin.lng?.toFixed(4) || 'N/A'}</div>
-        <div>DEST: {destination.lat?.toFixed(4) || 'N/A'}, {destination.lng?.toFixed(4) || 'N/A'}</div>
-        <div>STATUS: AUTONOMOUS FLIGHT</div>
+      <div className="absolute top-4 left-4 text-[10px] font-mono text-green-400 bg-slate-900/90 p-2 rounded border border-green-500/30 shadow-lg">
+        <div className="flex items-center gap-2 mb-1"><Activity size={10} className="animate-pulse"/> TELEMETRY ACTIVE</div>
+        <div>ALTITUDE: 450m | SPEED: 85km/h</div>
+        <div>LAT: {origin.lat?.toFixed(3)} | LNG: {origin.lng?.toFixed(3)}</div>
+        <div className="text-blue-300 mt-1">EST. ARRIVAL: &lt; 2 MINS</div>
       </div>
       
       {/* Flight Path Animation */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none">
-        <path d="M 100 300 Q 400 100 700 300" fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5,5">
-          <animate attributeName="stroke-dashoffset" from="100" to="0" dur="2s" repeatCount="indefinite" />
+        <path d="M 100 250 Q 400 50 700 250" fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="8,8">
+          <animate attributeName="stroke-dashoffset" from="100" to="0" dur="3s" repeatCount="indefinite" />
         </path>
+        {/* Origin Point */}
+        <circle cx="100" cy="250" r="4" fill="#ef4444" />
+        <text x="80" y="270" fill="white" fontSize="10" fontFamily="monospace">HOSPITAL</text>
+        {/* Dest Point */}
+        <circle cx="700" cy="250" r="4" fill="#22c55e" />
+        <text x="680" y="270" fill="white" fontSize="10" fontFamily="monospace">PHC ZONE</text>
       </svg>
 
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <Plane className="text-blue-400 w-12 h-12 animate-pulse" />
-        <div className="absolute -top-2 -right-2 w-3 h-3 bg-green-500 rounded-full animate-bounce" />
+        <div className="relative">
+          <Plane className="text-blue-400 w-10 h-10 animate-pulse rotate-45" />
+          <div className="absolute -inset-4 border border-blue-500/30 rounded-full animate-ping"></div>
+        </div>
       </div>
     </div>
   );
 };
 
-// --- ASSETS & PLACEHOLDERS ---
-const logoMain = "https://placehold.co/150x50?text=AeroMed";
-const PLACEHOLDER_MED = "https://placehold.co/100x100?text=Med";
+// --- CONSTANTS ---
+const PLACEHOLDER_MED = "https://placehold.co/100x100?text=Rx";
+const LOGO_URL = "https://placehold.co/150x50?text=AeroMed+Logo";
 
-// Register ChartJS
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
-
-// PHC COORDINATES
 const PHC_COORDINATES = {
   "PHC Chamorshi": { lat: 19.9280, lng: 79.9050 },
   "PHC Gadhchiroli": { lat: 20.1849, lng: 79.9948 },
-  "PHC Panera": { lat: 19.9500, lng: 79.8500 },
-  "PHC Belgaon": { lat: 19.9000, lng: 80.0500 },
-  "PHC Dhutergatta": { lat: 19.8800, lng: 79.9200 },
-  "PHC Gatta": { lat: 19.7500, lng: 80.1000 },
-  "PHC Gaurkheda": { lat: 19.9100, lng: 79.8000 },
-  "PHC Murmadi": { lat: 19.9800, lng: 79.9500 }
 };
 const HOSPITAL_LOC = { lat: 19.9260, lng: 79.9033 }; 
 
-// LOCAL REFERENCE DB (Using Placeholders)
 const LOCAL_MEDICINE_DB = [
   { id: 6, name: 'Inj. Atropine', img: PLACEHOLDER_MED },
   { id: 7, name: 'Inj. Adrenaline', img: PLACEHOLDER_MED },
   { id: 8, name: 'Inj. Hydrocortisone', img: PLACEHOLDER_MED },
-  { id: 9, name: 'Inj. Deriphyllin', img: PLACEHOLDER_MED },
   { id: 10, name: 'Inj. Dexamethasone', img: PLACEHOLDER_MED },
   { id: 11, name: 'Inj. KCl (Potassium)', img: PLACEHOLDER_MED },
-  { id: 12, name: 'Inj. Cal. Gluconate', img: PLACEHOLDER_MED },
-  { id: 14, name: 'Inj. Midazolam', img: PLACEHOLDER_MED },
-  { id: 15, name: 'Inj. Phenergan', img: PLACEHOLDER_MED },
-  { id: 16, name: 'Inj. Dopamine', img: PLACEHOLDER_MED },
-  { id: 17, name: 'Inj. Actrapid (Insulin)', img: PLACEHOLDER_MED },
-  { id: 18, name: 'Inj. Nor Adrenaline', img: PLACEHOLDER_MED },
-  { id: 19, name: 'Inj. NTG', img: PLACEHOLDER_MED },
-  { id: 20, name: 'Inj. Diclofenac', img: PLACEHOLDER_MED },
-  { id: 22, name: 'Inj. Neostigmine', img: PLACEHOLDER_MED },
-  { id: 24, name: 'Inj. Avil', img: PLACEHOLDER_MED },
-  { id: 25, name: 'IV Paracetamol 100ml', img: PLACEHOLDER_MED },
-  { id: 26, name: 'IV 25% Dextrose', img: PLACEHOLDER_MED },
-  { id: 27, name: 'IV Haemaccel', img: PLACEHOLDER_MED },
+  { id: 25, name: 'IV Paracetamol', img: PLACEHOLDER_MED },
 ];
 
-const DashboardContent = () => {
-  const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('userInfo')) || { name: 'District Hospital' };
-  
+// --- MAIN COMPONENT ---
+
+function HospitalDashboard() {
+  // State
   const [activeTab, setActiveTab] = useState('alerts');
   const [requests, setRequests] = useState([]); 
-  
-  // Inventory State
-  const [inventory, setInventory] = useState(LOCAL_MEDICINE_DB.map(item => ({
-      ...item, stock: 0, expiry: 'N/A', batch: 'N/A' 
-  })));
-
-  // ✅ OPERATOR FORM STATE
-  const [operatorForm, setOperatorForm] = useState({
-      name: '', role: 'Pilot', subDistrict: 'Chamorshi', experience: '', phone: '', email: '', address: ''
-  });
-
+  const [inventory, setInventory] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [viewProof, setViewProof] = useState(null);
-  const [viewItemList, setViewItemList] = useState(null);
-  const [isCopilotOpen, setIsCopilotOpen] = useState(false); // Managed state for Copilot
-  
-  const [predictions, setPredictions] = useState([]); 
-  const [filteredPredictions, setFilteredPredictions] = useState([]); 
-  const [selectedPhc, setSelectedPhc] = useState("All"); 
-  
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [activeMissions, setActiveMissions] = useState([]);
+  const [aiLogs, setAiLogs] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [chatMessage, setChatMessage] = useState("");
-  const [incidentData, setIncidentData] = useState([]);
-  const [barChartData, setBarChartData] = useState(null);
-  const [pieChartData, setPieChartData] = useState(null);
-  
-  const activeChatRequest = requests.find(r => r._id === activeChatId) || null;
-  const [activeMissions, setActiveMissions] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('activeMissions')) || [];
-    } catch { return []; }
-  });
-  const [aiLogs, setAiLogs] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('hospitalLogs_v1')) || []; } catch { return []; }
-  });
-  
-  useEffect(() => { localStorage.setItem('hospitalLogs_v1', JSON.stringify(aiLogs)); }, [aiLogs]);
-  const addLog = (msg, color) => {
-    setAiLogs(prev => {
-        if (prev.length > 0 && prev[0].msg === msg) return prev; 
-        return [{ time: new Date().toLocaleTimeString(), msg, color }, ...prev].slice(0, 50);
-    });
-  };
-  
-  const [processingQueue, setProcessingQueue] = useState([]);
-  const [trackProgress, setTrackProgress] = useState(0);
-  const [countdown, setCountdown] = useState(0); 
-  const [missionStatusText, setMissionStatusText] = useState('Standby');
-  const [droneStats, setDroneStats] = useState({ speed: 0, battery: 100, altitude: 0 });
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newItem, setNewItem] = useState({ name: '', stock: '', batch: '', expiry: '' });
+  const [newItem, setNewItem] = useState({ name: '', stock: '', expiry: '' });
   
-  // SMART URL LOGIC - FIXED: Removed import.meta
-  const BASE_URL = "http://localhost:5001";
-  const API_URL = `${BASE_URL}/api/requests`;
-  const INV_URL = `${BASE_URL}/api/hospital-inventory`;
-  const OP_URL = `${BASE_URL}/api/operators`; // ✅ Operator API
+  // Operator Form State
+  const [operatorForm, setOperatorForm] = useState({
+      name: '', role: 'Pilot', subDistrict: 'Chamorshi', phone: '', email: ''
+  });
 
-  const fetchRequests = async () => {
-    // If requests are already populated (e.g. from initial load), we might not need to fetch again in this demo environment
-    // to avoid constant connection refused errors.
-    try {
-      // Mocking fetch for demo stability if backend is unreachable
-      // const res = await fetch(API_URL);
-      // For Demo purposes, we simulate data if fetch fails
-      let data = [];
-      try {
-        const res = await fetch(API_URL);
-        if (res.ok) data = await res.json();
-        else throw new Error("Backend not available");
-      } catch (e) {
-         // Fallback mock data - Only set if we don't have data yet or want to refresh mock data
-         if (requests.length === 0) {
-             data = [
-               { _id: '101', phc: 'PHC Chamorshi', urgency: 'Critical', status: 'Pending', item: 'Inj. Atropine', qty: 10, createdAt: new Date().toISOString() },
-               { _id: '102', phc: 'PHC Gadhchiroli', urgency: 'High', status: 'Pending', item: 'IV Paracetamol', qty: 50, createdAt: new Date().toISOString() }
-             ];
-         } else {
-             // If we already have local state data in this demo, keep it to preserve updates
-             return;
-         }
-      }
-      
-      if (Array.isArray(data)) {
-        const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setRequests(sortedData);
-        
-        const allIncidents = [];
-        const phcCounts = {};
-        const typeCounts = {};
-        sortedData.forEach(req => {
-            if (req.incidents && req.incidents.length > 0) {
-                req.incidents.forEach(inc => {
-                    allIncidents.push({ ...inc, phc: req.phc, item: req.item, orderId: req._id });
-                    phcCounts[req.phc] = (phcCounts[req.phc] || 0) + 1;
-                    typeCounts[inc.type] = (typeCounts[inc.type] || 0) + 1;
-                });
-            }
-        });
-        setIncidentData(allIncidents);
-        setBarChartData({
-            labels: Object.keys(phcCounts),
-            datasets: [{ label: 'Incidents Reported', data: Object.values(phcCounts), backgroundColor: 'rgba(239, 68, 68, 0.6)', borderColor: 'rgba(239, 68, 68, 1)', borderWidth: 1 }]
-        });
-        setPieChartData({
-            labels: Object.keys(typeCounts),
-            datasets: [{ data: Object.values(typeCounts), backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)'] }]
-        });
-      }
+  // Derived State helpers
+  const activeChatRequest = requests.find(r => r._id === activeChatId);
 
-      // Mock Inventory fetch (Initial load)
-      if (inventory.length === 0 || inventory[0].stock === 0) {
-          const mergedInventory = LOCAL_MEDICINE_DB.map(localItem => ({
-              ...localItem, 
-              stock: Math.floor(Math.random() * 50) + 5, 
-              expiry: '2024-12-01',
-              batch: 'B-101'
-          }));
-          setInventory(mergedInventory);
-      }
-      
-    } catch (err) { console.error("Network Error", err); }
-  };
-
+  // --- MOCK DATA INITIALIZATION ---
   useEffect(() => {
-    fetchRequests();
-    // Reduced frequency or removed for demo to prevent console spam if backend missing
-    // const interval = setInterval(fetchRequests, 10000); 
-    // return () => clearInterval(interval);
+    // Simulate Fetching Requests
+    const mockRequests = [
+      { 
+        _id: '101', 
+        phc: 'PHC Chamorshi', 
+        urgency: 'Critical', 
+        status: 'Pending', 
+        item: 'Inj. Atropine', 
+        qty: 10, 
+        createdAt: new Date().toISOString(),
+        distance: '12km',
+        chat: []
+      },
+      { 
+        _id: '102', 
+        phc: 'PHC Gadhchiroli', 
+        urgency: 'High', 
+        status: 'Pending', 
+        item: 'IV Paracetamol', 
+        qty: 50, 
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+        distance: '8km',
+        chat: [{sender: 'PHC', message: 'Urgent requirement due to accident case.', timestamp: new Date().toISOString()}]
+      }
+    ];
+    setRequests(mockRequests);
+
+    // Simulate Fetching Inventory
+    const mockInventory = LOCAL_MEDICINE_DB.map(item => ({
+      ...item,
+      stock: Math.floor(Math.random() * 50) + 10,
+      expiry: '2024-12-31'
+    }));
+    setInventory(mockInventory);
+
+    // Initial Log
+    addLog("System initialized. Connected to Satellite Link.", "text-blue-400");
   }, []);
 
-  const handleClearAll = async () => {
-      if(!confirm(" ⚠️  WARNING: This will delete ALL order history and logs. Are you sure?")) return;
-      // Optimistic clear
-      setRequests([]);
-      setAiLogs([]);
-      localStorage.removeItem('aiSystemLogs');
-      
-      try {
-          await fetch(`${API_URL}/clear-all`, { method: "DELETE" });
-          alert("System Reset Successful");
-      } catch (e) { 
-          // alert("Failed to clear data (Backend Offline)"); 
-      }
+  // --- ACTIONS ---
+
+  const addLog = (msg, color = "text-green-400") => {
+    setAiLogs(prev => [{ time: new Date().toLocaleTimeString(), msg, color }, ...prev].slice(0, 20));
   };
 
-  const sendMessage = async () => {
-    if (!chatMessage.trim() || !activeChatId) return;
+  const handleApprove = (id) => {
+    setRequests(prev => prev.map(r => r._id === id ? { ...r, status: 'Approved' } : r));
+    addLog(`Request ${id} Approved by Admin. Awaiting Dispatch.`, "text-yellow-400");
+  };
+
+  const handleReject = (id) => {
+    setRequests(prev => prev.map(r => r._id === id ? { ...r, status: 'Rejected' } : r));
+  };
+
+  const handleDispatch = (req) => {
+    if(!window.confirm(`Confirm launch sequence for ${req.phc}?`)) return;
     
-    // Optimistic Update
-    setRequests(prev => prev.map(req => {
-        if (req._id === activeChatId) {
-            const newChat = req.chat ? [...req.chat] : [];
-            newChat.push({ sender: "Hospital", message: chatMessage, timestamp: new Date().toISOString() });
-            return { ...req, chat: newChat };
-        }
-        return req;
+    // Update status
+    setRequests(prev => prev.map(r => r._id === req._id ? { ...r, status: 'Dispatched' } : r));
+    
+    // Create Mission
+    const dest = PHC_COORDINATES[req.phc] || PHC_COORDINATES["PHC Chamorshi"];
+    const mission = { id: req._id, phc: req.phc, destination: dest };
+    setActiveMissions([mission]); // Demo: only 1 active mission at a time
+    
+    // Switch tab
+    setActiveTab('map');
+    addLog(`LAUNCH CONFIRMED. Drone en route to ${req.phc}`, "text-red-400 font-bold");
+  };
+
+  const handleDeliveryComplete = () => {
+    if(activeMissions.length === 0) return;
+    const mission = activeMissions[0];
+    
+    setRequests(prev => prev.map(r => r._id === mission.id ? { ...r, status: 'Delivered' } : r));
+    setActiveMissions([]);
+    addLog(`PACKAGE DELIVERED successfully to ${mission.phc}`, "text-green-400 font-bold");
+    
+    setTimeout(() => {
+      alert(`✅ Mission Success: Package delivered to ${mission.phc}`);
+      setActiveTab('alerts');
+    }, 1000);
+  };
+
+  const handleSendMessage = () => {
+    if(!chatMessage.trim() || !activeChatId) return;
+    setRequests(prev => prev.map(r => {
+      if(r._id === activeChatId) {
+        return {
+          ...r,
+          chat: [...(r.chat || []), { sender: 'Hospital', message: chatMessage, timestamp: new Date().toISOString() }]
+        };
+      }
+      return r;
     }));
     setChatMessage("");
-
-    try {
-        await fetch(`${API_URL}/${activeChatId}/chat`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sender: "Hospital", message: chatMessage })
-        });
-    } catch (err) { console.log("Demo: Message saved locally"); }
   };
 
-  // ✅ HANDLE OPERATOR SUBMISSION
-  const handleOperatorSubmit = async (e) => {
-      e.preventDefault();
-      alert("✅ Operator Registered Successfully! (Demo Mode)");
-      setOperatorForm({ name: '', role: 'Pilot', subDistrict: 'Chamorshi', experience: '', phone: '', email: '', address: '' });
-
-      try {
-          const res = await fetch(OP_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                  ...operatorForm,
-                  contact: { phone: operatorForm.phone, email: operatorForm.email, address: operatorForm.address }
-              })
-          });
-      } catch(err) { 
-          // Silent fail for demo
-      }
+  const handleOperatorSubmit = (e) => {
+    e.preventDefault();
+    alert(`✅ Operator "${operatorForm.name}" registered successfully! (Mock Action)`);
+    setOperatorForm({ name: '', role: 'Pilot', subDistrict: 'Chamorshi', phone: '', email: '' });
   };
 
-  const fetchPredictions = async () => {
-    try {
-        // const res = await fetch(`${BASE_URL}/api/analytics/predict`); 
-        // const data = await res.json();
-        // Mock data usually
-        const mockData = [
-            { phc: "PHC Chamorshi", name: "Inj. Atropine", predictedQty: 42, trend: " 📈  Rising" },
-            { phc: "PHC Belgaon", name: "IV Paracetamol", predictedQty: 15, trend: " 📉  Stable" },
-            { phc: "PHC Gadhchiroli", name: "Inj. Adrenaline", predictedQty: 30, trend: " 📈  Urgent" }
-        ];
-        setPredictions(mockData);
-        setFilteredPredictions(mockData.slice(0, 3));
-    } catch (err) {
-       console.error(err);
+  const updateStock = (id, amount) => {
+    setInventory(prev => prev.map(item => item.id === id ? { ...item, stock: Math.max(0, item.stock + amount) } : item));
+  };
+
+  const handleLogout = () => {
+    if(confirm("Are you sure you want to logout?")) {
+      window.location.reload(); // Simple reload to simulate logout in this environment
     }
   };
 
-  useEffect(() => { fetchPredictions(); }, []);
-
-  useEffect(() => {
-      if (selectedPhc === "All") {
-          setFilteredPredictions(predictions.slice(0, 3));
-      } else {
-          const filtered = predictions.filter(p => p.phc === selectedPhc);
-          setFilteredPredictions(filtered.length > 0 ? filtered : [{ name: "No Data", predictedQty: 0, trend: "Stable" }]);
-      }
-  }, [selectedPhc, predictions]);
-
-  const calculatePriorityScore = (req) => {
-    let score = 0.0;
-    let dist = 10; 
-    if (req.distance) {
-         const match = req.distance.match(/(\d+)/);
-         if (match) dist = parseFloat(match[0]);
-    }
-    const isLong = dist > 15; const isMedium = dist >= 5 && dist <= 15;
-    if (req.urgency === 'Critical') { if (isLong) score = 0.99; else if (isMedium) score = 0.95; else score = 0.90; } 
-    else if (req.urgency === 'High') { if (isLong) score = 0.85; else if (isMedium) score = 0.80; else score = 0.75; } 
-    else { if (isLong) score = 0.60; else if (isMedium) score = 0.55; else score = 0.50; }
-    return score.toFixed(2); 
-  };
-
-  useEffect(() => {
-    const aiLoop = setInterval(() => {
-        requests.forEach(req => {
-            if (req.status === 'Pending' && !processingQueue.includes(req._id)) {
-                const score = calculatePriorityScore(req);
-                setProcessingQueue(prev => [...prev, req._id]);
-                if (req.urgency === 'Critical') {
-                    const logMsg = `ID: ${req._id.slice(-4)} | CRITICAL - PROCESSING (10s)`;
-                    addLog(logMsg, "text-red-500 font-bold");
-                    setTimeout(() => {
-                        updateStatusInDB(req._id, 'Approved');
-                        addLog(`ID: ${req._id.slice(-4)} |  ✅  APPROVED. WAITING FOR DISPATCH.`, "text-green-400");
-                    }, 10000);
-                } else {
-                    addLog(`ID: ${req._id.slice(-4)} | Score: ${score} |  ⏳  QUEUED (20s Buffer)`, "text-yellow-400");
-                    setTimeout(() => {
-                         updateStatusInDB(req._id, 'Approved');
-                         addLog(`ID: ${req._id.slice(-4)} |  ✅  APPROVED. WAITING FOR DISPATCH.`, "text-green-300");
-                    }, 20000);
-                }
-            }
-        });
-    }, 3000); 
-    return () => clearInterval(aiLoop);
-  }, [requests, processingQueue]);
-
-  const handleAutoDispatch = (req) => {
-    if (activeMissions.find(m => m.id === req._id)) return;
-    updateStatusInDB(req._id, 'Dispatched');
-    addLog(` 🚁  Drone Dispatched by Pilot Manohar Singh`, "text-blue-400 font-bold");
-    const destination = (req.coordinates && req.coordinates.lat) ? req.coordinates : (PHC_COORDINATES[req.phc] || { lat: 19.9280, lng: 79.9050 });
-    const newMission = { id: req._id, phc: req.phc, destination: destination, startTime: Date.now(), delivered: false };
-    setActiveMissions(prev => [...prev, newMission]);
-    setActiveTab('map'); 
-    setTimeout(() => { addLog(` 📦  Package Out for Delivery - Enroute to ${req.phc}`, "text-white"); }, 2000);
-  };
-
-  useEffect(() => {
-    localStorage.setItem('activeMissions', JSON.stringify(activeMissions));
-  }, [activeMissions]);
-
-  const handleLogout = () => { localStorage.removeItem('userInfo'); navigate('/login'); };
-  
-  const showCoordinates = (req) => {
-      if (req.coordinates && req.coordinates.lat) {
-          alert(` 📍  GPS Drop Location [${req.phc}]:\n\nLatitude: ${req.coordinates.lat}\nLongitude: ${req.coordinates.lng}\n\n ✅  Received from PHC App.`);
-      } else {
-          const coords = PHC_COORDINATES[req.phc] || { lat: 'Unknown', lng: 'Unknown' };
-          alert(` 📍  Static Location [${req.phc}]:\n\nLatitude: ${coords.lat}\nLongitude: ${coords.lng}\n\n ⚠️  Using database default.`);
-      }
-  };
-
-  const updateStatusInDB = async (id, newStatus) => { 
-      // Optimistic UI Update for Demo
-      setRequests(prev => prev.map(req => req._id === id ? { ...req, status: newStatus } : req));
-
-      try { 
-          await fetch(`${API_URL}/${id}`, { 
-              method: "PUT", 
-              headers: { "Content-Type": "application/json" }, 
-              body: JSON.stringify({ status: newStatus }), 
-          }); 
-          // fetchRequests(); // Disabled for demo to avoid overwriting optimistic updates with stale data
-      } catch (err) { console.log("Backend offline, local update only"); } 
-  };
-
-  const handleApprove = (id, urgency) => { updateStatusInDB(id, 'Approved'); };
-  const handleDispatch = (req) => { if(!confirm("Confirm Manual Dispatch?")) return; handleAutoDispatch(req, 0); };
-  const handleReject = (id, urgency) => { if(!confirm("Reject this request?")) return; updateStatusInDB(id, 'Rejected'); };
-  
-  const updateStock = async (id, change) => { 
-      // Optimistic update
-      setInventory(prev => prev.map(item => item.id === id ? { ...item, stock: item.stock + change } : item));
-
-      try {
-          await fetch(`${BASE_URL}/api/hospital-inventory/update`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ itemId: id, change })
-          });
-      } catch (e) { console.log("Backend offline, local update only"); }
-  };
-
-  const removeMedicine = (id) => {
-    if(confirm("Remove item?")) setInventory(inventory.filter(item => item.id !== id));
-  };
-  
-  const addNewItem = () => { 
-      if(!newItem.name) return alert("Fill details"); 
-      setInventory([...inventory, { 
-          id: Date.now(), 
-          ...newItem, 
-          stock: parseInt(newItem.stock), 
-          img: PLACEHOLDER_MED 
-      }]); 
-      setShowAddModal(false); 
-  };
+  // --- RENDER ---
 
   return (
-    <div className={`min-h-screen bg-slate-50 flex font-sans text-slate-800 relative`}>
-      {isMobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>}
+    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800 relative overflow-hidden">
       
-      {/* Floating Copilot Button & Component */}
-      <button 
-          onClick={() => setIsCopilotOpen(!isCopilotOpen)}
-          className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-xl transition-all hover:scale-110 flex items-center justify-center"
-      >
-          {isCopilotOpen ? <X size={24}/> : <MessageCircle size={24}/>}
-      </button>
-      <AiCopilot contextData={{ inventory, requests }} isOpen={isCopilotOpen} onClose={() => setIsCopilotOpen(false)} />
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/60 z-30 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
 
+      {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white shadow-2xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:flex md:flex-col`}>
         <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-          <div className="mb-4 flex items-center gap-2">
-            <img src={logoMain} className="h-10 w-auto object-contain bg-white rounded-lg p-1" alt="Logo"/>
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tighter">
+            <Activity className="text-blue-500" /> AeroMed
           </div>
-          <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400"><X size={24} /></button>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400">
+            <X size={24} />
+          </button>
         </div>
+        
         <nav className="flex-1 p-4 space-y-2">
-          <button onClick={() => {setActiveTab('alerts'); setIsMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${activeTab === 'alerts' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}><AlertOctagon size={18} /> Live Alerts</button>
-          <button onClick={() => {setActiveTab('analytics'); setIsMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${activeTab === 'analytics' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}><TrendingUp size={18} /> Predictive AI</button>
-          <button onClick={() => {setActiveTab('map'); setIsMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${activeTab === 'map' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}><MapIcon size={18} /> Live Tracking</button>
-          <button onClick={() => {setActiveTab('inventory'); setIsMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${activeTab === 'inventory' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}><Package size={18} /> Inventory</button>
-          
-          {/* ✅ NEW: DRONE OPERATORS TAB */}
-          <button onClick={() => {setActiveTab('operators'); setIsMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${activeTab === 'operators' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}><Users size={18} /> Drone Operators</button>
+          {[
+            { id: 'alerts', icon: AlertOctagon, label: 'Command Center' },
+            { id: 'analytics', icon: TrendingUp, label: 'AI Analytics' },
+            { id: 'map', icon: MapIcon, label: 'Live Tracking' },
+            { id: 'inventory', icon: Package, label: 'Inventory' },
+            { id: 'operators', icon: Users, label: 'Operators' },
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === item.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+            >
+              <item.icon size={18} /> {item.label}
+            </button>
+          ))}
         </nav>
-        <div className="p-4 border-t border-slate-800"><button onClick={handleLogout} className="w-full flex items-center gap-2 text-red-400 hover:bg-slate-800 p-3 rounded-xl"><LogOut size={16} /> Logout</button></div>
+
+        <div className="p-4 border-t border-slate-800">
+          <button onClick={handleLogout} className="w-full flex items-center gap-2 text-red-400 hover:bg-slate-800 p-3 rounded-xl transition-colors">
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
       </aside>
-      <main className={`flex-1 overflow-hidden flex flex-col relative w-full`}>
-        <header className="bg-white border-b border-slate-200 px-4 py-4 flex justify-between items-center shadow-sm z-10">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 text-slate-600"><Menu size={24} /></button>
-            <h1 className="text-lg md:text-2xl font-bold text-slate-800">{activeTab === 'operators' ? 'Operator Registration' : activeTab === 'alerts' ? 'Autonomous Command Center' : 'Dashboard'}</h1>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+        {/* Header */}
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-10 shrink-0">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-600">
+              <Menu size={24} />
+            </button>
+            <h1 className="text-xl font-bold text-slate-800 uppercase tracking-wide">
+              {activeTab === 'alerts' ? 'Autonomous Dispatch' : activeTab.replace('-', ' ')}
+            </h1>
           </div>
           <div className="flex items-center gap-3">
-             <button onClick={handleClearAll} className="bg-red-50 text-red-600 px-3 py-1 rounded-lg text-xs font-bold border border-red-200 hover:bg-red-100 transition-colors flex items-center gap-1"><Trash2 size={14}/> Reset System</button>
-             <div className="bg-blue-50 px-3 py-1 rounded-full text-xs font-semibold text-blue-700 flex items-center gap-2 border border-blue-100">
-                <MapPin size={14} /> {user.name}
+             <div className="hidden md:flex bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-100 items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                SYSTEM ONLINE
              </div>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 relative">
-            
-            {/* EXISTING TABS (Alerts, Map, Inventory) */}
-            {activeTab === 'alerts' && (
-                <div className="max-w-6xl mx-auto">
-                    {requests.length === 0 && <p className="text-center text-slate-400 mt-4">No pending requests.</p>}
-                    {requests.map((req) => {
-                        const score = calculatePriorityScore(req);
-                        const hasIncident = req.incidents && req.incidents.length > 0;
-                        return (
-                        <div key={req._id} className={`bg-white rounded-xl shadow-sm border p-4 mb-4 flex flex-col md:flex-row justify-between gap-4 ${req.status === 'Rejected' ? 'opacity-50' : ''} ${hasIncident ? 'border-red-500 ring-2 ring-red-100' : ''}`}>
-                            <div className="flex items-start gap-4">
-                                <div className={`p-3 rounded-full ${req.urgency === 'Critical' ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600'}`}><AlertOctagon size={24} /></div>
-                                <div>
-                                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                        {req.phc}
-                                        <span className={`text-[10px] px-2 py-0.5 rounded border ${score >= 0.8 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>Score: {score}</span>
-                                        {hasIncident && <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ml-2"><AlertTriangle size={10}/> ISSUE</span>}
-                                    </h3>
-                                    <button onClick={() => setViewItemList(req)} className="text-sm text-slate-600 hover:text-blue-600 hover:underline text-left mt-1 font-medium flex items-center gap-1"><ClipboardList size={14}/> {req.qty} items (Click to View List)</button>
-                                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-500"><Clock size={12}/> {new Date(req.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
-                                    <button onClick={() => showCoordinates(req)} className="mt-2 text-xs text-blue-600 hover:underline flex items-center gap-1"><Globe size={12} /> Loc ({req.coordinates ? 'GPS' : 'Static'})</button>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={() => setActiveChatId(req._id)} className={`p-2 rounded-full relative ${req.chat?.length > 0 ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}><MessageCircle size={18}/></button>
-                                <button onClick={() => setViewProof(req)} className="px-3 py-2 border rounded-lg text-slate-600 text-sm flex gap-2"><FileText size={16} /> Proof</button>
-                                {req.status === 'Pending' && (<div className="flex items-center gap-2 text-green-600 font-bold text-sm animate-pulse bg-green-50 px-3 py-2 rounded border border-green-200">{req.urgency === 'Critical' ? ' 🚀  LAUNCHING...' : ' ⏳  SAFETY CHECK (15s)'}</div>)}
-                                {req.status === 'Dispatched' && <span className="text-green-600 font-bold text-sm flex items-center gap-1"><CheckCircle2 size={16} /> In-Flight</span>}
-                                {req.status === 'Delivered' && <span className="text-blue-600 font-bold text-sm flex items-center gap-1"><CheckCircle2 size={16} /> Delivered</span>}
-                                {req.status === 'Pending' && score < 0.8 && (<><button onClick={() => handleReject(req._id, req.urgency)} className="px-3 py-2 border text-red-600 text-sm rounded-lg">Reject</button><button onClick={() => handleApprove(req._id, req.urgency)} className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg">Approve</button></>)}
-                                {req.status === 'Approved' && (<button onClick={() => handleDispatch(req)} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm animate-pulse">Dispatch</button>)}
-                            </div>
-                        </div>
-                    )})}
-                </div>
-            )}
 
-            {activeTab === 'analytics' && (
-                <div className="max-w-6xl mx-auto">
-                    {/* AI FORECAST */}
-                    {predictions.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                             <div className="md:col-span-3 flex justify-between items-center mb-2">
-                                 <h4 className="text-sm font-bold text-slate-500 uppercase flex items-center gap-2"><TrendingUp size={16}/> AI Demand Predictions</h4>
-                                 <div className="flex items-center gap-2"><Filter size={14} className="text-slate-400"/><select className="bg-white border border-slate-300 text-xs p-2 rounded-lg outline-none font-medium text-slate-600" onChange={(e) => setSelectedPhc(e.target.value)}><option value="All">All PHCs</option><option value="PHC Chamorshi">PHC Chamorshi</option><option value="PHC Gadhchiroli">PHC Gadhchiroli</option><option value="PHC Panera">PHC Panera</option><option value="PHC Belgaon">PHC Belgaon</option><option value="PHC Dhutergatta">PHC Dhutergatta</option><option value="PHC Gatta">PHC Gatta</option><option value="PHC Gaurkheda">PHC Gaurkheda</option><option value="PHC Murmadi">PHC Murmadi</option></select></div>
-                             </div>
-                             {filteredPredictions.map((pred, i) => (<div key={i} className="bg-white border border-slate-200 p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-shadow"><div><p className="text-[10px] text-slate-400 mb-1 uppercase font-bold">{pred.phc || "District Wide"}</p><p className="text-sm font-bold text-slate-800">{pred.name}</p><p className="text-lg font-bold text-indigo-600">{pred.predictedQty} <span className="text-xs text-slate-400 font-normal">units/week</span></p></div><div className={`p-2.5 rounded-lg ${pred.trend.includes('Rising') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}><TrendingUp size={24} /></div></div>))}
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50">
+          
+          {/* TAB: ALERTS (COMMAND CENTER) */}
+          {activeTab === 'alerts' && (
+            <div className="max-w-5xl mx-auto space-y-4">
+              {requests.map(req => (
+                <div key={req._id} className={`bg-white rounded-xl p-5 border shadow-sm transition-all ${req.status === 'Rejected' ? 'opacity-50 grayscale' : 'hover:shadow-md'}`}>
+                  <div className="flex flex-col md:flex-row justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className={`p-3 rounded-full shrink-0 ${req.urgency === 'Critical' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                        {req.urgency === 'Critical' ? <AlertOctagon size={24} /> : <ClipboardList size={24} />}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                          {req.phc}
+                          <span className={`text-[10px] px-2 py-0.5 rounded uppercase tracking-wider font-bold ${
+                            req.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
+                            req.status === 'Dispatched' ? 'bg-purple-100 text-purple-700' :
+                            req.status === 'Approved' ? 'bg-blue-100 text-blue-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>
+                            {req.status}
+                          </span>
+                        </h3>
+                        <p className="text-sm text-slate-500 mt-1 font-medium">{req.qty}x {req.item}</p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                           <span className="flex items-center gap-1"><Clock size={12}/> {new Date(req.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                           <span className="flex items-center gap-1"><MapPin size={12}/> {req.distance} away</span>
                         </div>
-                    )}
-                    <div className="bg-slate-900 text-green-400 p-4 rounded-xl font-mono text-xs h-64 overflow-y-auto border border-slate-700 shadow-inner relative"><div className="flex items-center gap-2 mb-2 border-b border-slate-700 pb-1 sticky top-0 bg-slate-900 w-full"><Terminal size={14}/> SYSTEM LOGS [AUTO-PILOT ENABLED]:</div>{aiLogs.map((log, i) => (<p key={i} className={`mb-1 ${log.color}`}>{log.time} &gt; {log.msg}</p>))}</div>
-                </div>
-            )}
-            {activeTab === 'map' && ( <div className="w-full max-w-5xl mx-auto space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div> Live Mission Control</h2><button onClick={() => { setActiveTab('alerts'); fetchRequests(); }} className="text-sm text-blue-600 hover:underline">Close Tracking</button></div>{activeMissions.length > 0 ? (<RealisticFlightTracker origin={HOSPITAL_LOC} destination={activeMissions[0].destination} onDeliveryComplete={() => { const mission = activeMissions[0]; updateStatusInDB(mission.id, 'Delivered'); addLog(` ✅  MISSION COMPLETE: Package Delivered to ${mission.phc}`, "text-green-400 font-bold border-l-4 border-green-500 pl-2"); setTimeout(() => { setActiveMissions(prev => prev.slice(1)); setActiveTab('alerts'); fetchRequests(); }, 5000); }} />) : (<div className="bg-slate-100 h-96 rounded-3xl flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-300"><MapIcon size={64} className="mb-4 opacity-50"/><p className="font-bold">No Active Drones in Flight</p><p className="text-xs">Dispatch an order to view live satellite telemetry.</p></div>)}</div> )}
-            
-            {activeTab === 'inventory' && ( 
-                <div className="max-w-6xl mx-auto">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold">Hospital Inventory</h2>
-                        <button onClick={()=>setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 flex gap-2 items-center"><Plus size={16}/> Add Medicine</button>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {inventory.map(item => {
-                            const isExpiring = item.expiry && new Date(item.expiry) < new Date(new Date().setMonth(new Date().getMonth() + 3));
-                            return (
-                            <div key={item.id} className="bg-white p-4 rounded-xl border text-center shadow-sm relative group">
-                                <button onClick={() => removeMedicine(item.id)} className="absolute top-2 right-2 text-red-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
-                                <img src={item.img} className="h-24 w-full object-contain mb-2" alt={item.name}/>
-                                <h3 className="font-bold text-sm">{item.name}</h3>
-                                <p className={`text-[10px] mt-1 font-bold ${isExpiring ? 'text-red-500' : 'text-green-600'}`}>Exp: {item.expiry || 'N/A'}</p>
-                                <div className="flex justify-center gap-2 mt-2"><button onClick={() => updateStock(item.id, -1)} className="p-1 bg-gray-100 rounded"><Minus size={12}/></button><span className="font-bold">{item.stock}</span><button onClick={() => updateStock(item.id, 1)} className="p-1 bg-blue-100 text-blue-600 rounded"><Plus size={12}/></button></div>
-                            </div>
-                        )})}
-                    </div>
-                </div> 
-            )}
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 self-end md:self-center">
+                       <button onClick={() => setActiveChatId(req._id)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full">
+                         <MessageCircle size={20} />
+                       </button>
+                       
+                       {req.status === 'Pending' && (
+                         <>
+                           <button onClick={() => handleReject(req._id)} className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium border border-transparent hover:border-red-100">Reject</button>
+                           <button onClick={() => handleApprove(req._id)} className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-bold hover:bg-slate-800 shadow-lg shadow-slate-900/20">Approve Request</button>
+                         </>
+                       )}
+                       
+                       {req.status === 'Approved' && (
+                         <button onClick={() => handleDispatch(req)} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 animate-pulse shadow-lg shadow-green-600/30 flex items-center gap-2">
+                           <Plane size={16}/> DISPATCH DRONE
+                         </button>
+                       )}
 
-            {/* ✅ NEW: OPERATOR FORM TAB */}
-            {activeTab === 'operators' && (
-                <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-lg">
-                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                        <div className="bg-blue-100 p-3 rounded-full text-blue-600"><UserPlus size={24}/></div>
+                        {(req.status === 'Dispatched' || req.status === 'Delivered') && (
+                          <div className="text-xs font-bold text-slate-400 flex flex-col items-end">
+                             <span>MISSION ID: #MSN-{req._id}</span>
+                             <span className="text-green-600">{req.status === 'Delivered' ? 'SUCCESSFUL' : 'IN PROGRESS'}</span>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {requests.length === 0 && <div className="text-center py-10 text-slate-400">No active requests</div>}
+            </div>
+          )}
+
+          {/* TAB: ANALYTICS */}
+          {activeTab === 'analytics' && (
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Fake AI Predictions */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 {[
+                   { label: 'Predicted Demand', val: '+12%', color: 'text-green-600', icon: TrendingUp },
+                   { label: 'Risk Assessment', val: 'Low', color: 'text-blue-600', icon: AlertTriangle },
+                   { label: 'Drone Efficiency', val: '98.5%', color: 'text-purple-600', icon: Activity },
+                 ].map((stat, i) => (
+                   <div key={i} className="bg-white p-6 rounded-xl border shadow-sm flex items-center gap-4">
+                     <div className="p-3 bg-slate-50 rounded-full text-slate-600"><stat.icon size={24}/></div>
+                     <div>
+                       <p className="text-xs font-bold text-slate-400 uppercase">{stat.label}</p>
+                       <p className={`text-2xl font-bold ${stat.color}`}>{stat.val}</p>
+                     </div>
+                   </div>
+                 ))}
+              </div>
+
+              {/* System Console */}
+              <div className="bg-slate-900 rounded-xl overflow-hidden shadow-2xl border border-slate-700 flex flex-col h-96">
+                <div className="bg-slate-800 px-4 py-2 flex items-center gap-2 border-b border-slate-700">
+                  <Terminal size={14} className="text-slate-400" />
+                  <span className="text-xs font-mono text-slate-300">AeroMed_Sys_Log.txt</span>
+                </div>
+                <div className="flex-1 p-4 font-mono text-xs overflow-y-auto space-y-1">
+                  {aiLogs.map((log, i) => (
+                    <div key={i} className="flex gap-3">
+                      <span className="text-slate-500 shrink-0">[{log.time}]</span>
+                      <span className={log.color}>{log.msg}</span>
+                    </div>
+                  ))}
+                  {aiLogs.length === 0 && <span className="text-slate-600">Waiting for system events...</span>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: MAP */}
+          {activeTab === 'map' && (
+            <div className="max-w-5xl mx-auto h-full flex flex-col">
+              <div className="bg-white p-4 rounded-xl border shadow-sm mb-4 flex justify-between items-center">
+                 <div>
+                    <h2 className="font-bold text-slate-800 flex items-center gap-2">
+                       <div className={`w-3 h-3 rounded-full ${activeMissions.length > 0 ? 'bg-red-500 animate-pulse' : 'bg-slate-300'}`}></div>
+                       Live Mission Status
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      {activeMissions.length > 0 ? `Tracking Mission #${activeMissions[0].id}` : 'No active drones in airspace.'}
+                    </p>
+                 </div>
+                 {activeMissions.length > 0 && (
+                   <button onClick={() => setActiveTab('alerts')} className="text-sm text-blue-600 font-medium hover:underline">
+                     View Request Details
+                   </button>
+                 )}
+              </div>
+              
+              {activeMissions.length > 0 ? (
+                <RealisticFlightTracker 
+                  origin={HOSPITAL_LOC} 
+                  destination={activeMissions[0].destination} 
+                  onDeliveryComplete={handleDeliveryComplete} 
+                />
+              ) : (
+                <div className="flex-1 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
+                  <Globe size={64} className="mb-4 opacity-50" />
+                  <p className="font-medium">Waiting for dispatch orders...</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: INVENTORY */}
+          {activeTab === 'inventory' && (
+             <div className="max-w-6xl mx-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold">Central Inventory</h2>
+                    <button 
+                      onClick={() => setShowAddModal(true)} 
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 flex gap-2 items-center shadow-lg shadow-blue-600/20"
+                    >
+                      <Plus size={16}/> Add Stock
+                    </button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {inventory.map(item => (
+                    <div key={item.id} className="bg-white p-4 rounded-xl border shadow-sm flex flex-col items-center text-center relative group hover:shadow-md transition-all">
+                       <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3 text-slate-300">
+                          <Package size={32} />
+                       </div>
+                       <h3 className="font-bold text-slate-800 text-sm mb-1">{item.name}</h3>
+                       <p className="text-xs text-slate-500 mb-3">Exp: {item.expiry}</p>
+                       <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-2 py-1">
+                          <button onClick={() => updateStock(item.id, -1)} className="hover:text-red-500"><Minus size={14}/></button>
+                          <span className={`text-sm font-bold ${item.stock < 15 ? 'text-red-500' : 'text-slate-700'}`}>{item.stock}</span>
+                          <button onClick={() => updateStock(item.id, 1)} className="hover:text-green-500"><Plus size={14}/></button>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+             </div>
+          )}
+
+          {/* TAB: OPERATORS */}
+          {activeTab === 'operators' && (
+            <div className="max-w-xl mx-auto bg-white p-8 rounded-2xl border shadow-lg">
+                <div className="flex items-center gap-4 mb-8 border-b border-slate-100 pb-6">
+                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                      <UserPlus size={24}/>
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-800">Operator Registration</h2>
+                        <p className="text-sm text-slate-500">Onboard new pilots and technicians</p>
+                    </div>
+                </div>
+                <form onSubmit={handleOperatorSubmit} className="space-y-5">
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Full Name</label>
+                        <input className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors" required placeholder="e.g. Pilot Name" value={operatorForm.name} onChange={e=>setOperatorForm({...operatorForm, name: e.target.value})}/>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-800">Register New Drone Operator</h2>
-                            <p className="text-sm text-slate-500">Official personnel registration for Admin approval</p>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Role</label>
+                            <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg" value={operatorForm.role} onChange={e=>setOperatorForm({...operatorForm, role: e.target.value})}>
+                                <option>Pilot</option>
+                                <option>Technician</option>
+                                <option>Logistics</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Zone</label>
+                            <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg" value={operatorForm.subDistrict} onChange={e=>setOperatorForm({...operatorForm, subDistrict: e.target.value})}>
+                                <option>Chamorshi</option>
+                                <option>Gadhchiroli</option>
+                            </select>
                         </div>
                     </div>
-                    <form onSubmit={handleOperatorSubmit} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
-                                <div className="relative"><Users className="absolute left-3 top-3 text-slate-400" size={18}/><input className="w-full pl-10 p-3 border rounded-xl" required placeholder="e.g. Rajesh Kumar" value={operatorForm.name} onChange={e=>setOperatorForm({...operatorForm, name: e.target.value})}/></div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role</label>
-                                <div className="relative"><Briefcase className="absolute left-3 top-3 text-slate-400" size={18}/><select className="w-full pl-10 p-3 border rounded-xl" value={operatorForm.role} onChange={e=>setOperatorForm({...operatorForm, role: e.target.value})}><option>Pilot</option><option>Coordinator</option><option>Technician</option></select></div>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Sub-District Zone</label>
-                            <select className="w-full p-3 border rounded-xl" value={operatorForm.subDistrict} onChange={e=>setOperatorForm({...operatorForm, subDistrict: e.target.value})}><option>Chamorshi</option><option>Gadhchiroli</option></select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Phone Number</label>
-                                <div className="relative"><Phone className="absolute left-3 top-3 text-slate-400" size={18}/><input className="w-full pl-10 p-3 border rounded-xl" required placeholder="+91 98765..." value={operatorForm.phone} onChange={e=>setOperatorForm({...operatorForm, phone: e.target.value})}/></div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Experience</label>
-                                <input className="w-full p-3 border rounded-xl" placeholder="e.g. 4 Years" value={operatorForm.experience} onChange={e=>setOperatorForm({...operatorForm, experience: e.target.value})}/>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email Address</label>
-                            <div className="relative"><Mail className="absolute left-3 top-3 text-slate-400" size={18}/><input className="w-full pl-10 p-3 border rounded-xl" type="email" required placeholder="official@arogya.com" value={operatorForm.email} onChange={e=>setOperatorForm({...operatorForm, email: e.target.value})}/></div>
-                        </div>
-                        <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 shadow-lg transition-transform active:scale-95 flex justify-center gap-2"><Send size={20}/> Submit Registration</button>
-                    </form>
-                </div>
-            )}
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Contact Email</label>
+                        <input type="email" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors" required placeholder="pilot@aeromed.com" value={operatorForm.email} onChange={e=>setOperatorForm({...operatorForm, email: e.target.value})}/>
+                    </div>
+                    <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition-transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+                        <Send size={18}/> Submit Registration
+                    </button>
+                </form>
+            </div>
+          )}
+
         </div>
+        
+        {/* Floating Copilot Trigger */}
+        <button 
+           onClick={() => setIsCopilotOpen(!isCopilotOpen)}
+           className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white p-4 rounded-full shadow-2xl hover:bg-slate-800 transition-transform hover:scale-110 flex items-center justify-center"
+        >
+           {isCopilotOpen ? <X size={24}/> : <MessageCircle size={24}/>}
+        </button>
+        <AiCopilot isOpen={isCopilotOpen} onClose={() => setIsCopilotOpen(false)} />
+        
+        {/* Chat Modal */}
+        {activeChatId && activeChatRequest && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+             <div className="bg-white w-full max-w-md h-[500px] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+                <div className="bg-blue-600 p-4 text-white flex justify-between items-center shrink-0">
+                   <h3 className="font-bold flex items-center gap-2"><MessageCircle size={18}/> {activeChatRequest.phc}</h3>
+                   <button onClick={() => setActiveChatId(null)}><X size={20}/></button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-3">
+                   {activeChatRequest.chat?.length === 0 && <p className="text-center text-slate-400 text-sm mt-10">No messages yet.</p>}
+                   {activeChatRequest.chat?.map((c, i) => (
+                     <div key={i} className={`flex ${c.sender === 'Hospital' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[80%] p-3 rounded-xl text-sm ${c.sender === 'Hospital' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border text-slate-700 rounded-bl-none'}`}>
+                           <p>{c.message}</p>
+                           <p className="text-[10px] opacity-70 mt-1 text-right">{new Date(c.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
+                        </div>
+                     </div>
+                   ))}
+                </div>
+                <div className="p-3 bg-white border-t flex gap-2 shrink-0">
+                   <input className="flex-1 bg-slate-100 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 ring-blue-500" placeholder="Type message..." value={chatMessage} onChange={e => setChatMessage(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSendMessage()} />
+                   <button onClick={handleSendMessage} className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"><Send size={18}/></button>
+                </div>
+             </div>
+          </div>
+        )}
+
+        {/* Add Item Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+             <div className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl">
+                <h3 className="font-bold text-lg mb-4">Add Inventory</h3>
+                <div className="space-y-3">
+                   <input className="w-full p-2 border rounded" placeholder="Item Name" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} />
+                   <input className="w-full p-2 border rounded" type="number" placeholder="Stock Qty" value={newItem.stock} onChange={e => setNewItem({...newItem, stock: e.target.value})} />
+                   <button onClick={() => {
+                      if(!newItem.name) return;
+                      setInventory(prev => [...prev, { id: Date.now(), name: newItem.name, stock: parseInt(newItem.stock) || 0, expiry: '2025-01-01' }]);
+                      setShowAddModal(false);
+                      setNewItem({ name: '', stock: '' });
+                   }} className="w-full bg-blue-600 text-white py-2 rounded font-bold">Add Item</button>
+                   <button onClick={() => setShowAddModal(false)} className="w-full text-slate-500 py-2">Cancel</button>
+                </div>
+             </div>
+          </div>
+        )}
+
       </main>
-       {/* MODALS */}
-      {activeChatId && activeChatRequest && (<div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"><div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[500px]"><div className="bg-blue-600 p-4 flex justify-between items-center text-white"><h3 className="font-bold flex items-center gap-2"><MessageCircle size={18}/> Chat with PHC</h3><button onClick={() => setActiveChatId(null)}><X size={20}/></button></div><div className="flex-1 p-4 overflow-y-auto bg-slate-50 space-y-3">{activeChatRequest.chat?.map((c, i) => (<div key={i} className={`flex ${c.sender === 'Hospital' ? 'justify-end' : 'justify-start'}`}><div className={`p-3 rounded-xl text-sm max-w-[80%] ${c.sender === 'Hospital' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 rounded-bl-none'}`}><p>{c.message}</p><span className="text-[10px] opacity-70 block mt-1 text-right">{new Date(c.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span></div></div>))}</div><div className="p-3 bg-white border-t flex gap-2"><input className="flex-1 bg-slate-100 border-0 rounded-xl px-4 py-2 text-sm focus:outline-none" placeholder="Type message..." value={chatMessage} onChange={(e)=>setChatMessage(e.target.value)} onKeyPress={(e)=>e.key==='Enter' && sendMessage()}/><button onClick={sendMessage} className="bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700"><Send size={18}/></button></div></div></div>)}
-      {viewItemList && (<div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"><div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"><div className="bg-blue-600 p-4 flex justify-between items-center text-white"><h3 className="font-bold flex items-center gap-2"><ClipboardList size={18} /> Packing List</h3><button onClick={() => setViewItemList(null)} className="hover:bg-blue-700 p-1 rounded"><X size={20}/></button></div><div className="p-6 max-h-96 overflow-y-auto bg-slate-50"><div className="space-y-3">{viewItemList.item.split(', ').map((itm, idx) => (<div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-sm"><span className="font-bold text-slate-800">{itm}</span><span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">Pack This</span></div>))}</div></div><div className="p-4 bg-white text-right border-t border-slate-200"><button onClick={() => setViewItemList(null)} className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-bold text-sm shadow-md">Done Packing</button></div></div></div>)}
-      {viewProof && <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"><div className="bg-white p-4 rounded shadow-lg w-96"><img src={viewProof.proofFiles[0]} className="w-full" alt="proof"/><button onClick={()=>setViewProof(null)} className="mt-2 w-full bg-gray-200 p-2 rounded">Close</button></div></div>}
-      {showAddModal && (<div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"><div className="bg-white p-0 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden transform transition-all scale-100"><div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center"><div><h3 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Package className="text-blue-600" size={20}/> Add New Medicine</h3></div><button onClick={() => setShowAddModal(false)}><X size={20} /></button></div><div className="p-6 space-y-5"><div className="space-y-1.5"><label className="text-xs font-bold text-slate-500 uppercase">Name</label><input className="w-full p-3 border rounded-xl" placeholder="Medicine Name" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} /></div><div className="grid grid-cols-2 gap-5"><div className="space-y-1.5"><label className="text-xs font-bold text-slate-500 uppercase">Batch</label><input className="w-full p-3 border rounded-xl" placeholder="Batch ID" value={newItem.batch} onChange={e => setNewItem({...newItem, batch: e.target.value})} /></div><div className="space-y-1.5"><label className="text-xs font-bold text-slate-500 uppercase">Stock</label><input className="w-full p-3 border rounded-xl" type="number" value={newItem.stock} onChange={e => setNewItem({...newItem, stock: e.target.value})} /></div></div><div className="space-y-1.5"><label className="text-xs font-bold text-slate-500 uppercase">Expiry Date</label><input className="w-full p-3 border rounded-xl" type="date" value={newItem.expiry} onChange={e => setNewItem({...newItem, expiry: e.target.value})} /></div></div><div className="px-6 py-4 bg-slate-50 border-t flex justify-end gap-3"><button onClick={() => setShowAddModal(false)} className="px-5 py-2 text-slate-600">Cancel</button><button onClick={addNewItem} className="px-6 py-2 bg-blue-600 text-white rounded-xl">Save</button></div></div></div>)}
     </div>
   );
-};
+}
 
-const HospitalDashboard = () => {
+// Export Default
+export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/*" element={<DashboardContent />} />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <HospitalDashboard />
+    </ErrorBoundary>
   );
-};
-
-export default HospitalDashboard;
+}
